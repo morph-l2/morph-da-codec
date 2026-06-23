@@ -1,0 +1,12 @@
+[package]
+name = "morph-da-decoder-ffi"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+name = "morph_da_zstd_decode"
+crate-type = ["staticlib"]
+
+[dependencies]
+morph-da-decoder-core.workspace = true
