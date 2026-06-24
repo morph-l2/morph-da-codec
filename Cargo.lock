@@ -24,13 +24,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "orph-da-decoder-guest"
-version = "0.1.0"
-dependencies = [
- "morph-da-decoder-core",
-]
-
-[[package]]
 name = "ruzstd"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

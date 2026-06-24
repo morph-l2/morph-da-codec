@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "crates/decoder/core",
-    "crates/decoder/zstd-guest",
     "crates/decoder/zstd-ffi",
 ]
 resolver = "3"
