@@ -1,4 +1,4 @@
-//go:build linux && amd64 && cgo && TODO
+//go:build linux && amd64 && cgo && !musl && TODO
 
 package zstd
 

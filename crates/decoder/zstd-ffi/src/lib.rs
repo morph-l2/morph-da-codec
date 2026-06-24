@@ -1,8 +1,13 @@
-use std::{ptr, slice};
+use std::{
+    os::raw::{c_char, c_uchar},
+    ptr, slice,
+};
 
-use morph_da_decoder_core::{Error, decompress_morph_da_zstd as decompress, decompressed_size_bound};
+use morph_da_decoder_core::{
+    Error, decompress_morph_da_zstd as decompress, decompressed_size_bound,
+};
 
-const OK: *const i8 = ptr::null();
+const OK: *const c_char = ptr::null();
 
 const EMPTY_INPUT: &[u8] = b"empty input\0";
 const INVALID_FRAME: &[u8] = b"invalid frame\0";
@@ -11,11 +16,11 @@ const OUTPUT_BUFFER_TOO_SMALL: &[u8] = b"output buffer too small\0";
 const DECOMPRESSED_SIZE_TOO_LARGE: &[u8] = b"decompressed size too large\0";
 
 #[unsafe(no_mangle)]
-pub extern "C" fn morph_da_zstd_decompress_bound(
-    src: *const u8,
+pub unsafe extern "C" fn morph_da_zstd_decompress_bound(
+    src: *const c_uchar,
     src_size: u64,
     output_size: *mut u64,
-) -> *const i8 {
+) -> *const c_char {
     if output_size.is_null() {
         return err_ptr(Error::InvalidFrame);
     }
@@ -36,12 +41,12 @@ pub extern "C" fn morph_da_zstd_decompress_bound(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn morph_da_zstd_decompress(
-    src: *const u8,
+pub unsafe extern "C" fn morph_da_zstd_decompress(
+    src: *const c_uchar,
     src_size: u64,
-    output_buf: *mut u8,
+    output_buf: *mut c_uchar,
     output_buf_size: *mut u64,
-) -> *const i8 {
+) -> *const c_char {
     if output_buf_size.is_null() {
         return err_ptr(Error::InvalidFrame);
     }
@@ -77,7 +82,7 @@ pub extern "C" fn morph_da_zstd_decompress(
     }
 }
 
-fn input_slice<'a>(src: *const u8, src_size: u64) -> morph_da_decoder_core::Result<&'a [u8]> {
+fn input_slice<'a>(src: *const c_uchar, src_size: u64) -> morph_da_decoder_core::Result<&'a [u8]> {
     if src_size == 0 {
         return Ok(&[]);
     }
@@ -89,7 +94,7 @@ fn input_slice<'a>(src: *const u8, src_size: u64) -> morph_da_decoder_core::Resu
     Ok(unsafe { slice::from_raw_parts(src, len) })
 }
 
-fn err_ptr(err: Error) -> *const i8 {
+fn err_ptr(err: Error) -> *const c_char {
     match err {
         Error::EmptyInput => EMPTY_INPUT.as_ptr().cast(),
         Error::InvalidFrame => INVALID_FRAME.as_ptr().cast(),
