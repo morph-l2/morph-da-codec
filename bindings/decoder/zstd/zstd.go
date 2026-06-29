@@ -43,9 +43,6 @@ func DecompressMorphDABatch(payload []byte) ([]byte, error) {
 	}
 
 	boundLen := uint64(bound)
-	if boundLen == 0 {
-		return []byte{}, nil
-	}
 	if uint64(int(boundLen)) != boundLen {
 		return nil, ErrInvalidDecompressedLength
 	}

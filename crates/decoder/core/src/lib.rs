@@ -46,8 +46,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub fn decompress_morph_da_zstd(payload: &[u8]) -> Result<Vec<u8>> {
     let expected_len = decompressed_size_bound(payload)?;
     if expected_len == 0 {
-        // empty batch
-        return Ok(Vec::new());
+        return Err(Error::InvalidFrame);
     }
 
     let framed_len = ZSTD_MAGIC_BYTES
@@ -59,12 +58,17 @@ pub fn decompress_morph_da_zstd(payload: &[u8]) -> Result<Vec<u8>> {
     framed.extend_from_slice(payload);
 
     let mut source = framed.as_slice();
-    let mut decoder = StreamingDecoder::new(&mut source).map_err(|_| Error::InvalidFrame)?;
+    let decoder = StreamingDecoder::new(&mut source).map_err(|_| Error::InvalidFrame)?;
     let output_capacity =
         usize::try_from(expected_len).map_err(|_| Error::DecompressedSizeTooLarge)?;
     let mut output = Vec::with_capacity(output_capacity);
 
-    decoder
+    let read_limit = expected_len
+        .checked_add(1)
+        .ok_or(Error::DecompressedSizeTooLarge)?;
+    let mut limited_decoder = decoder.take(read_limit);
+
+    limited_decoder
         .read_to_end(&mut output)
         .map_err(|_| Error::InvalidFrame)?;
 

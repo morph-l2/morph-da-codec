@@ -1,6 +1,7 @@
 use morph_da_decoder_core::{Error, decompress_morph_da_zstd};
 
 const HELLO_PAYLOAD: &[u8] = include_bytes!("../../../../testdata/any/text-1.bin");
+const EMPTY_FRAME_PAYLOAD: &[u8] = &[0x20, 0x00, 0x01, 0x00, 0x00];
 
 #[test]
 fn decompresses_valid_single_frame_payload() {
@@ -29,6 +30,14 @@ fn ignores_trailing_second_payload() {
 #[test]
 fn rejects_empty_input() {
     assert_eq!(decompress_morph_da_zstd(b""), Err(Error::EmptyInput));
+}
+
+#[test]
+fn rejects_empty_frame_payload() {
+    assert_eq!(
+        decompress_morph_da_zstd(EMPTY_FRAME_PAYLOAD),
+        Err(Error::InvalidFrame)
+    );
 }
 
 #[test]

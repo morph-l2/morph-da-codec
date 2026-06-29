@@ -94,6 +94,15 @@ func TestDecompressMorphDABatchRejectsEmptyInput(t *testing.T) {
 	}
 }
 
+func TestDecompressMorphDABatchRejectsEmptyFramePayload(t *testing.T) {
+	payload := []byte{0x20, 0x00, 0x01, 0x00, 0x00}
+
+	_, err := DecompressMorphDABatch(payload)
+	if err == nil || !strings.Contains(err.Error(), "invalid frame") {
+		t.Fatalf("expected invalid frame error, got %v", err)
+	}
+}
+
 func TestDecompressMorphDABatchRejectsCorruptedFrame(t *testing.T) {
 	payload := loadHelloPayload(t)
 	payload = payload[:len(payload)-1]
