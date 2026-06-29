@@ -92,10 +92,8 @@ libmorph_da_zstd_decode_${GOOS}_${GOARCH}.a
 
 The current Go binding declares cgo link configurations for the following platforms:
 
-- `darwin/amd64`
 - `darwin/arm64`
 - `linux/amd64`
-- `linux/arm64`
 
 Generate and install the static library for the current host platform in this repository:
 
