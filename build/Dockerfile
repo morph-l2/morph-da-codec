@@ -20,11 +20,11 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY bindings ./bindings
 
-RUN cargo build -p morph-da-decoder-ffi --release --locked
+RUN cargo build -p morph-da-codec-ffi --release --locked
 
 RUN mkdir -p /out && \
-    cp target/release/libmorph_da_zstd_decode.a \
-       /out/libmorph_da_zstd_decode_linux_amd64.a
+    cp target/release/libmorph_da_zstd.a \
+       /out/libmorph_da_zstd_linux_amd64.a
 
 FROM scratch AS artifact
 
