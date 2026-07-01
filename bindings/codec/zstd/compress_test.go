@@ -2,6 +2,8 @@ package zstd
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"testing"
 )
 
@@ -33,5 +35,20 @@ func TestCompressMorphDABatchRejectsEmptyInput(t *testing.T) {
 	_, err := CompressMorphDABatch(nil)
 	if !errorsIs(err, ErrEmptyInput) {
 		t.Fatalf("expected ErrEmptyInput, got %v", err)
+	}
+}
+
+func TestCompressMorphDABatchHelloWorldHash(t *testing.T) {
+	compressed, err := CompressMorphDABatch([]byte("hello world"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(compressed) == 0 {
+		t.Fatal("compressed output is empty")
+	}
+
+	hash := sha256.Sum256(compressed)
+	if got, want := hex.EncodeToString(hash[:]), "5850cf750ce5ac2ccea3d4d0baeb85e3645297ca72df11c7c1c2b2dfbc1eb015"; got != want {
+		t.Fatalf("compressed hash mismatch: got %s, want %s", got, want)
 	}
 }

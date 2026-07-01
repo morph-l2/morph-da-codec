@@ -28,5 +28,7 @@ morph-da-encoder-ffi = { path = "crates/encoder/zstd-ffi" }
 ruzstd = "0.8.3"
 # `experimental` exposes LiteralCompressionMode / include_magicbytes (Magicless
 # frame format), required by the Morph DA encoder parameter rules.
-zstd = { version = "0.13.3", features = ["experimental"] }
+zstd = { git = "https://github.com/morph-l2/zstd-rs.git", branch = "zstd-dev", features = [
+    "experimental",
+] }
 hex = "0.4.3"

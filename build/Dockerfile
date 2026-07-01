@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1.6
 
+# Builds artifacts compatible with most Linux distros and kernels.
 FROM quay.io/pypa/manylinux2014_x86_64 AS builder
 
 ARG RUST_VERSION=1.93.0

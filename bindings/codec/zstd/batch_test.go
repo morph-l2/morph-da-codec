@@ -1,6 +1,7 @@
 package zstd
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"os"
 	"path/filepath"
@@ -33,9 +34,21 @@ func TestDecompressesBatch(t *testing.T) {
 				batchData = append(batchData, decodeBlob(t, readHex(t, path))...)
 			}
 
+			// compressedLen := compressedFrameLen(t, batchData)
 			decoded, err := DecompressMorphDABatch(batchData)
 			if err != nil {
 				t.Fatal(err)
+			}
+
+			// Compression equivalence Test
+			recompressed, err := CompressMorphDABatch(decoded)
+			if err != nil {
+				t.Fatal(err)
+			}
+			originalCompressedHash := sha256.Sum256(batchData[:len(recompressed)])
+			recompressedHash := sha256.Sum256(recompressed)
+			if originalCompressedHash != recompressedHash {
+				t.Fatalf("compressed hash mismatch: got %x, want %x (recompressed len %d, compressed len %d)", recompressedHash, originalCompressedHash, len(recompressed), len(recompressed))
 			}
 			t.Logf("decoded len %d", len(decoded))
 		})
