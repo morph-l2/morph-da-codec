@@ -48,7 +48,7 @@ func TestDecompressesBatch(t *testing.T) {
 			originalCompressedHash := sha256.Sum256(batchData[:len(recompressed)])
 			recompressedHash := sha256.Sum256(recompressed)
 			if originalCompressedHash != recompressedHash {
-				t.Fatalf("compressed hash mismatch: got %x, want %x (recompressed len %d, compressed len %d)", recompressedHash, originalCompressedHash, len(recompressed), len(recompressed))
+				t.Fatalf("compressed hash mismatch: got %x, want %x ,recompressed len %d", recompressedHash, originalCompressedHash, len(recompressed))
 			}
 			t.Logf("decoded len %d", len(decoded))
 		})
