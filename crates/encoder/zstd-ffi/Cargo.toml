@@ -1,0 +1,12 @@
+[package]
+name = "morph-da-encoder-ffi"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+# Plain rlib, aggregated into `codec-ffi` (see decoder/zstd-ffi for rationale).
+crate-type = ["rlib"]
+
+[dependencies]
+morph-da-encoder-core.workspace = true

@@ -2,6 +2,9 @@
 members = [
     "crates/decoder/core",
     "crates/decoder/zstd-ffi",
+    "crates/encoder/core",
+    "crates/encoder/zstd-ffi",
+    "crates/codec-ffi",
 ]
 resolver = "3"
 
@@ -12,6 +15,20 @@ license = "MIT OR Apache-2.0"
 publish = false
 
 [workspace.dependencies]
+# Internal crates: pure-Rust logic lives in the `core` crates (reusable by other
+# Rust projects as plain rlibs); the `ffi` crates hold the C ABI; `codec-ffi` is
+# the single staticlib aggregator linked by Go.
 morph-da-decoder-core = { path = "crates/decoder/core" }
+morph-da-decoder-ffi = { path = "crates/decoder/zstd-ffi" }
+morph-da-encoder-core = { path = "crates/encoder/core" }
+morph-da-encoder-ffi = { path = "crates/encoder/zstd-ffi" }
+
+# External: decoder uses the pure-Rust `ruzstd`; encoder wraps the C `libzstd`
+# via the `zstd` crate. Their C symbols do not overlap.
 ruzstd = "0.8.3"
+# `experimental` exposes LiteralCompressionMode / include_magicbytes (Magicless
+# frame format), required by the Morph DA encoder parameter rules.
+zstd = { git = "https://github.com/morph-l2/zstd-rs.git", branch = "zstd-dev", features = [
+    "experimental",
+] }
 hex = "0.4.3"

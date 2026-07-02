@@ -5,8 +5,10 @@ edition.workspace = true
 publish.workspace = true
 
 [lib]
-name = "morph_da_zstd_decode"
-crate-type = ["staticlib"]
+# Plain rlib so it can be aggregated into the single `codec-ffi` staticlib.
+# Producing a staticlib here would bundle a second copy of the Rust runtime and
+# clash with the encoder's runtime at link time.
+crate-type = ["rlib"]
 
 [dependencies]
 morph-da-decoder-core.workspace = true

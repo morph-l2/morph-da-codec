@@ -1,0 +1,14 @@
+[package]
+name = "morph-da-encoder-core"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+# Wraps the C `libzstd` for compression. Bundled into the codec staticlib; its
+# C symbols (`ZSTD_*`) do not overlap with the decoder's pure-Rust `ruzstd`.
+zstd.workspace = true
+
+[dev-dependencies]
+# Round-trip tests: encode here, decode with the sibling decoder.
+morph-da-decoder-core.workspace = true

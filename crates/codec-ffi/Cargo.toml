@@ -1,0 +1,16 @@
+[package]
+name = "morph-da-codec-ffi"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+# The ONLY staticlib in the workspace. Go links exactly this `.a`, so the final
+# binary contains a single copy of the Rust runtime (no `__rust_alloc` clash).
+# Produces `libmorph_da_zstd.a`, linked by the `bindings/codec` Go module.
+name = "morph_da_zstd"
+crate-type = ["staticlib"]
+
+[dependencies]
+morph-da-decoder-ffi.workspace = true
+morph-da-encoder-ffi.workspace = true
