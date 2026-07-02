@@ -38,6 +38,42 @@ func TestCompressMorphDABatchRejectsEmptyInput(t *testing.T) {
 	}
 }
 
+// TestCompressIntoTooSmallBufferReportsNeededSize validates the two
+// preconditions the retry path in CompressMorphDABatch relies on: the FFI
+// returns the exact "output buffer too small" error text, and writes the
+// precise required size back through the output size pointer.
+func TestCompressIntoTooSmallBufferReportsNeededSize(t *testing.T) {
+	original := bytes.Repeat([]byte("morph da batch payload \x00\x01\x02 too small "), 64)
+
+	compressed, err := CompressMorphDABatch(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, neededSize, errMsg := compressIntoBuf(original, 1)
+	if errMsg == "" {
+		t.Fatal("expected an error for a 1-byte output buffer")
+	}
+	if errMsg != outputBufferTooSmall {
+		t.Fatalf("error text mismatch: got %q, want %q", errMsg, outputBufferTooSmall)
+	}
+	if want := uint64(len(compressed)); neededSize != want {
+		t.Fatalf("needed size mismatch: got %d, want %d", neededSize, want)
+	}
+
+	// A retry with the reported size must succeed and fill the buffer exactly.
+	output, writtenSize, errMsg := compressIntoBuf(original, neededSize)
+	if errMsg != "" {
+		t.Fatalf("retry with exact capacity failed: %s", errMsg)
+	}
+	if writtenSize != neededSize {
+		t.Fatalf("written size mismatch: got %d, want %d", writtenSize, neededSize)
+	}
+	if !bytes.Equal(output[:writtenSize], compressed) {
+		t.Fatal("retry output differs from single-shot compression output")
+	}
+}
+
 func TestCompressMorphDABatchHelloWorldHash(t *testing.T) {
 	compressed, err := CompressMorphDABatch([]byte("hello world"))
 	if err != nil {

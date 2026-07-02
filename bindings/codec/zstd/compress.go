@@ -26,6 +26,8 @@ import (
 
 var ErrInvalidCompressedLength = errors.New("invalid compressed length")
 
+const outputBufferTooSmall = "output buffer too small"
+
 // CompressMorphDABatch compresses a Morph DA batch into a single magic-less
 // zstd frame, matching the parameters DecompressMorphDABatch expects.
 func CompressMorphDABatch(batch []byte) ([]byte, error) {
@@ -46,14 +48,19 @@ func CompressMorphDABatch(batch []byte) ([]byte, error) {
 		return nil, ErrInvalidCompressedLength
 	}
 
-	output := make([]byte, int(boundLen))
-	var outputSize = bound
-	var outputPtr *C.uint8_t
-	if len(output) != 0 {
-		outputPtr = (*C.uint8_t)(unsafe.Pointer(unsafe.SliceData(output)))
-	}
+	output, outputSize, err := compressInto(src, srcSize, bound)
+	if err != nil {
+		neededLen := uint64(outputSize)
+		if C.GoString(err) != outputBufferTooSmall || neededLen <= boundLen {
+			return nil, encodeError(err)
+		}
+		if uint64(int(neededLen)) != neededLen {
+			return nil, ErrInvalidCompressedLength
+		}
 
-	if err := C.morph_da_zstd_compress(src, srcSize, outputPtr, &outputSize); err != nil {
+		output, outputSize, err = compressInto(src, srcSize, C.uint64_t(neededLen))
+	}
+	if err != nil {
 		return nil, encodeError(err)
 	}
 
@@ -66,6 +73,30 @@ func CompressMorphDABatch(batch []byte) ([]byte, error) {
 	}
 
 	return output[:int(outputLen)], nil
+}
+
+func compressInto(src *C.uint8_t, srcSize C.uint64_t, capacity C.uint64_t) ([]byte, C.uint64_t, *C.char) {
+	output := make([]byte, int(uint64(capacity)))
+	var outputSize = capacity
+	var outputPtr *C.uint8_t
+	if len(output) != 0 {
+		outputPtr = (*C.uint8_t)(unsafe.Pointer(unsafe.SliceData(output)))
+	}
+
+	err := C.morph_da_zstd_compress(src, srcSize, outputPtr, &outputSize)
+	return output, outputSize, err
+}
+
+// compressIntoBuf is a cgo-free wrapper around compressInto for tests, which
+// cannot import "C". It returns the raw FFI error text ("" on success) so the
+// retry preconditions in CompressMorphDABatch can be asserted directly.
+func compressIntoBuf(batch []byte, capacity uint64) ([]byte, uint64, string) {
+	src := (*C.uint8_t)(unsafe.Pointer(unsafe.SliceData(batch)))
+	output, outputSize, err := compressInto(src, C.uint64_t(len(batch)), C.uint64_t(capacity))
+	if err == nil {
+		return output, uint64(outputSize), ""
+	}
+	return output, uint64(outputSize), C.GoString(err)
 }
 
 func encodeError(err *C.char) error {
